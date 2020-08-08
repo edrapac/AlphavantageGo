@@ -1,11 +1,12 @@
 package main
 import (
 	"fmt"
-	"net/http"
-	"io/ioutil"
+	 // "net/http" soup module will handle making the actual requests
+	// "io/ioutil"
 	"bufio"
 	"os"
 	"strings"
+	"github.com/anaskhan96/soup"
 )
 
 func main() {
@@ -16,18 +17,18 @@ func main() {
 	base_url += strings.ToUpper(strings.TrimSpace(fragment)) // kind of an ugly way to do it but it gets the job done!
 	
 
-	response, err := http.Get(base_url)
+	response, err := soup.Get(base_url)
 
 	if err != nil {
 		panic(err)
 	}
 
-	defer response.Body.Close()
-	bytes, err := ioutil.ReadAll(response.Body)
+	// defer response.Body.Close()
+	doc := soup.HTMLParse(response)
 
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Printf(string(bytes))
+	price := doc.Find("span","class","up")
+	fmt.Println(price)
 }
