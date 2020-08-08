@@ -6,7 +6,7 @@ import (
 	"golang.org/x/net/html"
 	//"bufio"
 	//"os"
-	"strings"
+	//"strings"
 )
 
 func main() {
@@ -25,24 +25,31 @@ func main() {
 
 	z := html.NewTokenizer(response.Body)
 	previousStartTokenTest := z.Token()
-	for {
-		tt := z.Next()
-		switch {
-		case tt == html.ErrorToken:
-		// EOF
-			break
-		case tt == html.StartTagToken:
-			previousStartTokenTest = z.Token()
-		case tt == html.TextToken:
-			if previousStartTokenTest.Data == "span" {
-				continue
+	loopOver:
+		for {
+			tt := z.Next()
+			switch {
+			case tt == html.ErrorToken:
+			// EOF
+				break loopOver
+			case tt == html.StartTagToken:
+				previousStartTokenTest = z.Token()
+			case tt == html.TextToken:
+				if previousStartTokenTest.Data == "span" {
+					continue
+				}
+				TxtContent := string(z.Text())
+				i := 0
+				if len(TxtContent) > 0 {
+					i += 1
+					fmt.Println(TxtContent,i)
+					
+				}
+				
+				defer response.Body.Close()
+				break
 			}
-			TxtContent := strings.TrimSpace(html.UnescapeString(string(z.Text())))
-			fmt.Println(TxtContent)
-			defer response.Body.Close()
-			break
 		}
-	}
 	// bytes, err := ioutil.ReadAll(response.Body)
 
 	if err != nil {
