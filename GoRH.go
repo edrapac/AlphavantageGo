@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	r, _ := regexp.Compile(`\\"price\\",\\"[0-9]+.[0-9]+`)
+	price, _ := regexp.Compile(`\\"price\\",\\"[0-9]+.[0-9]+`)
 	
 	z := html.NewTokenizer(response.Body)
 	previousStartTokenTest := z.Token()
@@ -36,13 +36,16 @@ func main() {
 			case tt == html.StartTagToken:
 				previousStartTokenTest = z.Token()
 			case tt == html.TextToken:
+				if previousStartTokenTest.Data == "p" {
+					ratings := string(z.Text())
+				}
 				if previousStartTokenTest.Data == "span" {
 					continue
 				}
 				TxtContent := string(z.Text())
 				if len(TxtContent) > 0 {
 					if r.MatchString(TxtContent) {
-						matched := r.FindString(TxtContent)
+						matched := price.FindString(TxtContent)
 						final := len(matched)
 						fmt.Println("Current trading price: ","$",strings.TrimSpace(matched[12:final]))
 					}
