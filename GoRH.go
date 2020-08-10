@@ -2,6 +2,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"io/ioutil"
 	"golang.org/x/net/html"
 	"regexp"
 	"bufio"
@@ -22,8 +23,21 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	bytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	fullcorpus := (string(bytes))
 	price, _ := regexp.Compile(`\\"price\\",\\"[0-9]+.[0-9]+`)
-	
+	hold, _ := regexp.Compile(`Hold</div>.*[0-9]+%`)
+	holdpercent, _ := regexp.Compile(`[0-9]+%</span>`)
+
+	if len(hold.FindString(fullcorpus)) > 0 {
+		percent_hold := strings.Replace(holdpercent.FindString(hold.FindString(fullcorpus)),"</span>","",-1)
+		fmt.Println(percent_hold,"Analysts say to hold",fragment)
+	}
+
 	z := html.NewTokenizer(response.Body)
 	previousStartTokenTest := z.Token()
 	loopOver:
@@ -36,15 +50,12 @@ func main() {
 			case tt == html.StartTagToken:
 				previousStartTokenTest = z.Token()
 			case tt == html.TextToken:
-				if previousStartTokenTest.Data == "p" {
-					ratings := string(z.Text())
-				}
 				if previousStartTokenTest.Data == "span" {
 					continue
 				}
 				TxtContent := string(z.Text())
 				if len(TxtContent) > 0 {
-					if r.MatchString(TxtContent) {
+					if price.MatchString(TxtContent) {
 						matched := price.FindString(TxtContent)
 						final := len(matched)
 						fmt.Println("Current trading price: ","$",strings.TrimSpace(matched[12:final]))
